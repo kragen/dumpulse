@@ -81,9 +81,10 @@ static void send_response(dumpulse *p, void *context)
 
 u8 dumpulse_process_packet(dumpulse *p, char *data, void *context)
 {
-  if (heartbeat_magic == data[4]) {
-    return process_heartbeat(p, (u8*)data);
-  } else if (0 == memcmp(data, "AreyouOK", 8)) {
+  u8 *d = (u8*)data;
+  if (heartbeat_magic == d[4]) {
+    return process_heartbeat(p, d);
+  } else if (0 == memcmp(d, "AreyouOK", 8)) {
     send_response(p, context);
     return 1;
   }

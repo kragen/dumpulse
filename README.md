@@ -1,4 +1,4 @@
-Dumpulse: a dumb heartbeat daemon in 256 bytes of RAM and ≈245 bytes of code
+Dumpulse: a dumb heartbeat daemon in 256 bytes of RAM and ≈350 bytes of code
 ============================================================================
 
 The problem this solves is the following: you have a distributed
@@ -64,15 +64,16 @@ aggregating heartbeat data sent over a physically secured network like
 I²C or CAN, running on bare metal or under a minimal real-time
 operating system like eCos, FreeRTOS, or RTEMS, although it also works
 on Linux.  It provides no authentication and only minimal data
-integrity checking.  All the packets except the 256-byte health report
-are 8 bytes or less, so they can be sent as single CAN bus frames,
+integrity checking.  All the packets except the 260-byte health report
+are 8 bytes, so they can be sent as single CAN bus frames,
 although the example Linux implementation uses UDP.  It takes no
 configuration data.
 
 Calling interface
 -----------------
 
-This module exposes one data type, `dumpulse`, which can be allocated
+As documented in `dumpulse.h`, `dumpulse.o`
+exposes one data type, `dumpulse`, which can be allocated
 where you like and needs no finalization but should be initialized to
 all zero bytes, and one function:
 
@@ -81,7 +82,7 @@ all zero bytes, and one function:
 It returns nonzero if it successfully processed the packet and zero if
 it did not, but generally speaking you don’t need to care.
 
-It requires you to provide two functions:
+For embedding, it requires you to provide two functions:
 
     uint16_t dumpulse_get_timestamp(void);
     void dumpulse_send_packet(void *context, char *data, size_t len);
@@ -104,6 +105,8 @@ successfully handled.
 
 Dumpulse does not allocate memory and can only fail in the sense of
 not being able to process a packet because it is ill-formed.
+
+There is an example of hooking it up to UDP on Linux in `udpserver.c`.
 
 Protocol
 --------
@@ -149,20 +152,51 @@ Performance and code weight
 ---------------------------
 
 Compiled for Linux with amd64 with GCC 5.4.0 with `-Os`, dumpulse is
-245 bytes of amd64 code and 55 instructions.  It should be similar for
+357 bytes of amd64 code and 78 instructions.
+It should be similar in weight, though with more instructions, for
 most other processors; for example, compiled for the 386 with `-m32`,
-it’s 244 bytes and 61 instructions; compiled for the AVR ATTiny88 with
-GCC 4.9.2 with `-Os -mmcu=attiny88`, it’s 201 bytes and 96
-instructions; compiled for the ATMega328, it’s 205 bytes and 96
+it’s 371 bytes and 94 instructions; compiled for the AVR ATTiny88 with
+GCC 4.9.2 with `-Os -mmcu=attiny88`, it’s 321 bytes and 156
+instructions; compiled for the ATMega328, it’s 327 bytes and 154
 instructions.  However, all of these versions will pull in `memcmp`
 from libc, and the AVR versions also `__do_copy_data`, if you aren’t
 using them already in your program.
 
-XXX why is there no undefined reference to `dumpulse_get_timestamp`?
-
 These numbers of course do not count the size of the
 `dumpulse_get_timestamp()` and `dumpulse_send_packet()` functions you
 must provide.
+
+Running the provided `udpserver` on Linux compiled as above under
+valgrind and hitting it with different numbers of requests from the
+provided `udpclient`, we get the following results:
+
+    | 0 request packets       | 159931 instructions executed |
+    | 1 setvar                |                       160997 |
+    | 2 setvars               |                       161116 |
+    | 3                       |                       161235 |
+    | 10                      |                       162068 |
+    | 100                     |                       172778 |
+    | 1000                    |                       279878 |
+    | 1 health report         |                       164141 |
+    | 1 report & 1 setvar     |                       165207 |
+    | 1 report & 1000 setvars |                       284088 |
+
+We can analyze these as follows in R:
+
+    > c(164141, 165207, 284088) - c(159931, 160997, 279878)
+    [1] 4210 4210 4210
+    > c(159931, 160997, 161116, 161235, 162068, 172778, 279878) - 160997
+    [1]  -1066      0    119    238   1071  11781 118881
+    > (c(159931, 160997, 161116, 161235, 162068, 172778, 279878) - 160997) / c(-1, 0, 1, 2, 9, 99, 999)
+    [1] 1066  NaN  119  119  119  119  119
+
+From this we can conclude that the health report costs 4210 amd64
+instructions, each heartbeat costs 119 instructions, and there’s an
+extra one-time cost of 1066 instructions for the first heartbeat,
+probably related to glibc’s implementation of time().  These numbers
+of course don’t include the time spent in the Linux kernel handling
+system calls, but they do include time in udpserver’s
+`dumpulse_send_packet` and `dumpulse_get_timestamp` functions.
 
 Reliability and security
 ------------------------

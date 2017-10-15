@@ -1,4 +1,4 @@
-/* #include something that defines size_t before this */
+/* #include stdint.h and something that defines size_t before this */
 
 enum {
   dumpulse_n_variables = 64,
@@ -20,6 +20,7 @@ typedef struct {
 } dumpulse;
 
 /* The dumpulse entry point; see README.md for details */
+/* XXX no length */
 
 uint8_t dumpulse_process_packet(dumpulse *p, char *data, void *context);
 
