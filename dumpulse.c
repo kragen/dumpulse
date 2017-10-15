@@ -1,5 +1,5 @@
 /* Implementation of Dumpulse, a dumb heartbeat daemon in 256 bytes of
-   RAM and ≈245 bytes of code
+   RAM and ≈350 bytes of code
  */
 #include <stdint.h>
 #include <string.h>
@@ -49,12 +49,9 @@ static u32 adler32(u8 *p, size_t len)
   u32 a = 1, b = 0;
   while (len--) {
     a += *p++;
+    if (a >= mod_adler) a -= mod_adler;
     b += a;
-    if (!(len & 0xff)) {
-      /* Note, this is guaranteed to run on the last byte because len == 0 */
-      if (a >= mod_adler) a -= mod_adler;
-      if (b >= mod_adler) b -= mod_adler;
-    }
+    if (b >= mod_adler) b -= mod_adler;
   }
   return b << 16 | a;
 }
