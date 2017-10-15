@@ -6,31 +6,25 @@
 
 #include "dumpulse.h"
 
-#ifdef __GNUC__
-#define inline __inline__
-#else
-#define inline
-#endif
-
 enum {heartbeat_magic = 0xf1, mod_adler = 65521};
 
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-static inline void store_little_endian_u16(u8 *p, u16 v)
+static void store_little_endian_u16(u8 *p, u16 v)
 {
   p[0] = 0xff & v;
   p[1] = 0xff & (v >> 8);
 }
 
-static inline void store_little_endian_u32(u8 *p, u32 v)
+static void store_little_endian_u32(u8 *p, u32 v)
 {
   store_little_endian_u16(p, v);
   store_little_endian_u16(p+2, v >> 16);
 }
 
-static inline u32 fetch_little_endian_u32(u8 *p)
+static u32 fetch_little_endian_u32(u8 *p)
 {
   return (u32)p[0]
     | (u32)p[1] << 8
@@ -39,7 +33,7 @@ static inline u32 fetch_little_endian_u32(u8 *p)
     ;
 }
 
-static inline u8 update_entry(dumpulse *p, u8 entry, u8 from, u8 value)
+static u8 update_entry(dumpulse *p, u8 entry, u8 from, u8 value)
 {
   u8 *item;
   if (entry > dumpulse_n_variables) return 0;
@@ -50,13 +44,13 @@ static inline u8 update_entry(dumpulse *p, u8 entry, u8 from, u8 value)
   return 1;
 }
 
-static inline u32 adler32(u8 *p, size_t len)
+static u32 adler32(u8 *p, size_t len)
 {
   u32 a = 1, b = 0;
   while (len--) {
     a += *p++;
     b += a;
-    if (!(len & 0xfff)) { /* XXX ff is probably better size/speed compromise */
+    if (!(len & 0xff)) {
       /* Note, this is guaranteed to run on the last byte because len == 0 */
       if (a >= mod_adler) a -= mod_adler;
       if (b >= mod_adler) b -= mod_adler;
@@ -65,7 +59,7 @@ static inline u32 adler32(u8 *p, size_t len)
   return b << 16 | a;
 }
 
-static inline u8 process_heartbeat(dumpulse *p, u8 *data)
+static u8 process_heartbeat(dumpulse *p, u8 *data)
 {
   u32 expected = fetch_little_endian_u32(data);
   u8 *payload = data + dumpulse_checksum_len;
@@ -77,7 +71,7 @@ static inline u8 process_heartbeat(dumpulse *p, u8 *data)
   return update_entry(p, payload[1], payload[2], payload[3]);
 }
 
-static inline void send_response(dumpulse *p, void *context)
+static void send_response(dumpulse *p, void *context)
 {
   store_little_endian_u32(p->table, adler32(
     (u8*)p->table + dumpulse_checksum_len,
