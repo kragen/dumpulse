@@ -12,39 +12,36 @@
 #define inline
 #endif
 
-enum {
-  heartbeat_magic = 0xf1,
-  mod_adler = 65521
-};
+enum {heartbeat_magic = 0xf1, mod_adler = 65521};
 
-static inline void store_little_endian_u16(char *p, uint16_t v)
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+
+static inline void store_little_endian_u16(u8 *p, u16 v)
 {
   p[0] = 0xff & v;
   p[1] = 0xff & (v >> 8);
 }
 
-static inline void store_little_endian_u32(char *p, uint32_t v)
+static inline void store_little_endian_u32(u8 *p, u32 v)
 {
   store_little_endian_u16(p, v);
   store_little_endian_u16(p+2, v >> 16);
 }
 
-static inline uint32_t fetch_little_endian_u32(char *p)
+static inline u32 fetch_little_endian_u32(u8 *p)
 {
-  uint8_t *q = p;
-  return (uint32_t)q[0]
-    | (uint32_t)q[1] << 8
-    | (uint32_t)q[2] << 16
-    | (uint32_t)q[3] << 24
+  return (u32)p[0]
+    | (u32)p[1] << 8
+    | (u32)p[2] << 16
+    | (u32)p[3] << 24
     ;
 }
 
-static inline uint8_t update_entry(dumpulse *p,
-                                   uint16_t entry,
-                                   uint8_t from,
-                                   uint8_t value)
+static inline u8 update_entry(dumpulse *p, u8 entry, u8 from, u8 value)
 {
-  char *item;
+  u8 *item;
   if (entry > dumpulse_n_variables) return 0;
   item = p->table + dumpulse_checksum_len + dumpulse_entry_size * entry;
   store_little_endian_u16(item, dumpulse_get_timestamp());
@@ -53,14 +50,13 @@ static inline uint8_t update_entry(dumpulse *p,
   return 1;
 }
 
-static inline uint32_t adler32(char *p, size_t len)
+static inline u32 adler32(u8 *p, size_t len)
 {
-  uint8_t *data = p;
-  uint32_t a = 1, b = 0;
+  u32 a = 1, b = 0;
   while (len--) {
-    a += *data++;
+    a += *p++;
     b += a;
-    if (!(len & 0xfff)) {
+    if (!(len & 0xfff)) { /* XXX ff is probably better size/speed compromise */
       /* Note, this is guaranteed to run on the last byte because len == 0 */
       if (a >= mod_adler) a -= mod_adler;
       if (b >= mod_adler) b -= mod_adler;
@@ -69,14 +65,14 @@ static inline uint32_t adler32(char *p, size_t len)
   return b << 16 | a;
 }
 
-static inline uint8_t process_heartbeat(dumpulse *p, char *data)
+static inline u8 process_heartbeat(dumpulse *p, u8 *data)
 {
-  uint32_t expected = fetch_little_endian_u32(data);
-  uint8_t *payload = data + dumpulse_checksum_len;
-  uint32_t checksum = adler32(payload,
-                              dumpulse_timestamp_len
-                              + dumpulse_id_len
-                              + dumpulse_value_len);
+  u32 expected = fetch_little_endian_u32(data);
+  u8 *payload = data + dumpulse_checksum_len;
+  u32 checksum = adler32(payload,
+                         dumpulse_timestamp_len
+                         + dumpulse_id_len
+                         + dumpulse_value_len);
   if (checksum != expected) return 0;
   return update_entry(p, payload[1], payload[2], payload[3]);
 }
@@ -84,15 +80,15 @@ static inline uint8_t process_heartbeat(dumpulse *p, char *data)
 static inline void send_response(dumpulse *p, void *context)
 {
   store_little_endian_u32(p->table, adler32(
-    p->table + dumpulse_checksum_len,
+    (u8*)p->table + dumpulse_checksum_len,
     sizeof(p->table) - dumpulse_checksum_len));
-  dumpulse_send_packet(context, p->table, sizeof(p->table));
+  dumpulse_send_packet(context, (char*)p->table, sizeof(p->table));
 }
 
-uint8_t dumpulse_process_packet(dumpulse *p, char *data, void *context)
+u8 dumpulse_process_packet(dumpulse *p, char *data, void *context)
 {
   if (heartbeat_magic == data[4]) {
-    return process_heartbeat(p, data);
+    return process_heartbeat(p, (u8*)data);
   } else if (0 == memcmp(data, "AreyouOK", 8)) {
     send_response(p, context);
     return 1;

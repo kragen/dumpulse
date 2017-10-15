@@ -15,8 +15,8 @@ enum {
 /* The dumpulse data structure; fill with zeros before use */
 
 typedef struct {
-  char table[dumpulse_checksum_len
-             + dumpulse_n_variables * dumpulse_entry_size];
+  unsigned char table[dumpulse_checksum_len
+                      + dumpulse_n_variables * dumpulse_entry_size];
 } dumpulse;
 
 /* The dumpulse entry point; see README.md for details */
