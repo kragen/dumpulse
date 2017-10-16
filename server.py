@@ -16,6 +16,8 @@ from ctypes import (
 )
 import os
 
+import udpclient
+
 
 so = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__) or '.',
                                    'dumpulse.so'))
@@ -43,18 +45,17 @@ dumpulse_process_packet_so.restype = c_ubyte
 
 
 class Dumpulse:
-    def __init__(self):
-        self.buf = create_string_buffer(n)
-
-    def process_packet(self, packet, get_timestamp, send_packet):
-        """Invoke Dumpulse.
-
-        packet — an 8-byte packet
+    def __init__(self, get_timestamp, send_packet):
+        """
         get_timestamp — a Python function returning an int
         send_packet — a Python function taking a bytes object
+
+        A normal person would probably have made those functions
+        methods you could override in a subclass, but whenever I use
+        inheritance, I always come to regret it later.
+
         """
-        assert len(self.buf) == n
-        assert len(packet) == 8 and isinstance(packet, bytes)
+        self.buf = create_string_buffer(n)
 
         def send_packet_wrapper(context, pointer, length):
             send_packet(pointer[:length])
@@ -64,27 +65,28 @@ class Dumpulse:
                              get_timestamp=get_timestamp_t(get_timestamp),
                              send_packet=send_packet_t(send_packet_wrapper),
                              p=pointer(self.buf))
-        return so.dumpulse_process_packet_so(pointer(struct), packet)
+        self.p = pointer(struct)
+
+    def process_packet(self, packet):
+        """Invoke Dumpulse.
+
+        packet — an 8-byte packet
+        """
+        assert len(self.buf) == n
+        assert len(packet) == 8 and isinstance(packet, bytes)
+
+        return so.dumpulse_process_packet_so(self.p, packet)
 
 
 if __name__ == '__main__':
-    import struct, zlib
-    x = Dumpulse()
+    x = Dumpulse(get_timestamp=lambda: (print("timestamp"), 12345)[1],
+                 send_packet=lambda data: print(data))
+
     # Query before any sets
-    print(x.process_packet(b"AreyouOK",
-                           lambda: (print("timestamp"), 12345)[1],
-                           lambda data: print(data)))
+    print(x.process_packet(udpclient.query_packet))
     # Valid set
-    payload = struct.pack("BBBB", 0xf1, 3, 4, 5)
-    req = struct.pack("<L", zlib.adler32(payload)) + payload
-    print(x.process_packet(req,
-                           lambda: (print("timestamp"), 12345)[1],
-                           lambda data: print(data)))
+    print(x.process_packet(udpclient.set_packet(3, 4, 5)))
     # Invalid data
-    print(x.process_packet(b"12345678",
-                           lambda: (print("timestamp"), 12345)[1],
-                           lambda data: print(data)))
+    print(x.process_packet(b"12345678"))
     # Query showing the set
-    print(x.process_packet(b"AreyouOK",
-                           lambda: (print("timestamp"), 12345)[1],
-                           lambda data: print(data)))
+    print(x.process_packet(udpclient.query_packet))
