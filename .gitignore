@@ -6,3 +6,4 @@ cachegrind.out.*
 __pycache__
 /dumpulse.so
 *.pyc
+.cache

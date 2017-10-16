@@ -1,10 +1,15 @@
 AVRGCC=avr-gcc
 CFLAGS=-g -Os -Wall -std=c89
+PYTEST=py.test-3
 
 all: dumpulse.o udpserver dumpulse-attiny88.o dumpulse-atmega328.o \
 	dumpulse-i386.o dumpulse.so
 clean:
 	-rm *.o *.so udpserver
+test: test-prereqs
+	$(PYTEST) test.py
+
+test-prereqs: dumpulse.so
 
 dumpulse.o: dumpulse.c dumpulse.h
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $<
