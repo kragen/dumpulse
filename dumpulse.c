@@ -36,7 +36,7 @@ static u32 fetch_little_endian_u32(u8 *p)
 static u8 update_entry(dumpulse *p, u8 entry, u8 from, u8 value)
 {
   u8 *item;
-  if (entry > dumpulse_n_variables) return 0;
+  if (entry >= dumpulse_n_variables) return 0;
   item = p->table + dumpulse_checksum_len + dumpulse_entry_size * entry;
   store_little_endian_u16(item, dumpulse_get_timestamp());
   item[2] = from;
