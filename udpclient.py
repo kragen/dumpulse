@@ -5,7 +5,7 @@
 import argparse
 import socket
 import struct
-from zlib import adler32
+import zlib
 
 
 # The query packet to send to Dumpulse server to get a health report.
@@ -30,7 +30,7 @@ def parse_health_report(health_report_bytes):
     """
     p = health_report_bytes
     checksum, = struct.unpack("<L", p[:4])
-    expected = adler32(p[4:])
+    expected = zlib.adler32(p[4:])
     return list(_variable_settings(p)), expected, checksum
 
 
@@ -47,6 +47,7 @@ def variable_settings(health_report_bytes):
 
 
 def get_health_report(socket_object):
+    "Request and display a health report from a Dumpulse server."
     socket_object.send(query_packet)
     p = socket_object.recv(2048)
     print("Health report of {} bytes:".format(len(p)))
@@ -55,12 +56,6 @@ def get_health_report(socket_object):
     if checksum == expected:
         print("checksum {:08x} checks OK".format(checksum))
     else:
-        # XXX note that this seems to be showing that the checksum I
-        # implemented doesn’t match Adler32 from zlib, in particular
-        # in the b parameter, for large packets.  It does match for
-        # all-zero packets or very small ones.  This suggests that the
-        # modulo is rong.  Also it matches when I weaken the
-        # conditional.
         print("checksum {:08x} doesn’t match {:08x} in packet".format(
             expected, checksum))
 
@@ -71,7 +66,7 @@ def get_health_report(socket_object):
 def set_packet(variable, sender, value):
     "Construct a set-variable request packet and return it as bytes."
     payload = struct.pack("BBBB", 0xf1, variable, sender, value)
-    return struct.pack("<L", adler32(payload)) + payload
+    return struct.pack("<L", zlib.adler32(payload)) + payload
 
 
 def set_variable(socket_object, variable, sender, value):

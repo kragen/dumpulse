@@ -1,5 +1,7 @@
 #!/usr/bin/python3
-"Python3 interface to Dumpulse server code, for testing."
+# -*- coding: utf-8 -*-
+"Python interface to Dumpulse server code, for testing."
+from __future__ import print_function
 from ctypes import (
     CFUNCTYPE,
     POINTER,
@@ -30,7 +32,7 @@ get_timestamp_t = CFUNCTYPE(c_ushort)
 send_packet_t = CFUNCTYPE(c_ushort, c_void_p, POINTER(c_char), c_ulong)
 
 
-class dumpulse_so(Structure):
+class _dumpulse_so(Structure):
     _fields_ = [
         ('context', c_void_p),
         ('get_timestamp', get_timestamp_t),
@@ -39,9 +41,9 @@ class dumpulse_so(Structure):
     ]
 
 
-dumpulse_process_packet_so = so.dumpulse_process_packet_so
-dumpulse_process_packet_so.argtypes = [POINTER(dumpulse_so), c_char_p]
-dumpulse_process_packet_so.restype = c_ubyte
+_dumpulse_process_packet_so = so.dumpulse_process_packet_so
+_dumpulse_process_packet_so.argtypes = [POINTER(_dumpulse_so), c_char_p]
+_dumpulse_process_packet_so.restype = c_ubyte
 
 
 class Dumpulse:
@@ -61,10 +63,10 @@ class Dumpulse:
             send_packet(pointer[:length])
             return 1     # not sure how to declare a void function yet
 
-        struct = dumpulse_so(context=None,
-                             get_timestamp=get_timestamp_t(get_timestamp),
-                             send_packet=send_packet_t(send_packet_wrapper),
-                             p=pointer(self.buf))
+        struct = _dumpulse_so(context=None,
+                              get_timestamp=get_timestamp_t(get_timestamp),
+                              send_packet=send_packet_t(send_packet_wrapper),
+                              p=pointer(self.buf))
         self.p = pointer(struct)
 
     def process_packet(self, packet):
@@ -75,12 +77,12 @@ class Dumpulse:
         assert len(self.buf) == n
         assert len(packet) == 8 and isinstance(packet, bytes)
 
-        return so.dumpulse_process_packet_so(self.p, packet)
+        return _dumpulse_process_packet_so(self.p, packet)
 
 
 if __name__ == '__main__':
     x = Dumpulse(get_timestamp=lambda: (print("timestamp"), 12345)[1],
-                 send_packet=lambda data: print(data))
+                 send_packet=lambda data: print(repr(data)))
 
     # Query before any sets
     print(x.process_packet(udpclient.query_packet))
