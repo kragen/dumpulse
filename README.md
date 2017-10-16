@@ -1,5 +1,63 @@
-Dumpulse: a dumb heartbeat daemon in 256 bytes of RAM and ≈350 bytes of code
-============================================================================
+Dumpulse: an embeddable dumb heartbeat daemon in 256 bytes of RAM and ≈350 bytes of code
+========================================================================================
+
+Getting it running and trying it out; basically any Unix with a
+C compiler and a recent Python 2 or 3 should work:
+
+    $ git clone …dumpulse
+    Cloning into 'dumpulse'...
+    done.
+    $ cd dumpulse/
+    $ make
+    cc -fPIC -g -Os -Wall -std=c89 -o dumpulse.o -c dumpulse.c
+    cc -g -Os -Wall -std=c89   -c -o udpserver.o udpserver.c
+    cc   udpserver.o dumpulse.o   -o udpserver
+    cc -fPIC -g -Os -Wall -std=c89 -o dumpulse_so.o -c dumpulse_so.c
+    cc -shared dumpulse_so.o dumpulse.o -o dumpulse.so
+    $ ./udpserver 9060 &
+    [1] 10560
+    $ Waiting for UDPv4 packets on port 9060.
+
+    $ python udpclient.py localhost 9060
+    Health report of 260 bytes:
+    checksum 01000001 checks OK
+    v0 = 0 at 0 from 0
+    v1 = 0 at 0 from 0
+    v2 = 0 at 0 from 0
+    …
+    v63 = 0 at 0 from 0
+    $ python udpclient.py localhost 9060 -v 45  # set a value
+    $ python udpclient.py localhost 9060
+    Health report of 260 bytes:
+    checksum 7fb80181 checks OK
+    v0 = 45 at 14543 from 76
+    v1 = 0 at 0 from 0
+    v2 = 0 at 0 from 0
+    …
+    v63 = 0 at 0 from 0
+    $ python udpclient.py localhost 9060 -v 46 -n 1
+    $ python udpclient.py localhost 9060
+    Health report of 260 bytes:
+    checksum 005c0309 checks OK
+    v0 = 45 at 14543 from 76
+    v1 = 46 at 14550 from 76
+    v2 = 0 at 0 from 0
+    …
+    v63 = 0 at 0 from 0
+    $ make test
+    py.test-3 test.py
+    ===================================================================================== test session starts =====================================================================================
+    platform linux -- Python 3.5.2, pytest-2.8.7, py-1.4.31, pluggy-0.3.1
+    rootdir: /home/user/Downloads/dumpulse, inifile: 
+    plugins: hypothesis-3.0.1
+    collected 1 items
+
+    test.py .
+
+    ================================================================================== 1 passed in 0.03 seconds ===================================================================================
+
+What? Why? What is this good for?
+---------------------------------
 
 The problem this solves is the following: you have a distributed
 system of microcontrollers that talk to each other over a
@@ -117,7 +175,8 @@ simultaneously invoke `dumpulse_process_packet_so` with different
 handlers on different threads.
 
 A `server.py` is provided which uses the dynamically-linkable
-interface via the standard, if awkward, Python `ctypes` module.
+interface via the standard, if awkward, Python `ctypes` module.  This
+is used for property-based generative testing.
 
 Protocol
 --------
@@ -161,6 +220,10 @@ wraparound time of 18.2 hours and a precision of 1 second.
 
 Performance and code weight
 ---------------------------
+
+Roughly, Dumpulse takes about 2 μs to handle a heartbeat message and
+64 μs to send a health report, varying of course based on the
+processor you run it on.
 
 Compiled for Linux with amd64 with GCC 5.4.0 with `-Os`, dumpulse is
 356 bytes of amd64 code and 76 instructions.  (`-fPIC` adds two more bytes.)
@@ -213,7 +276,9 @@ For a more quantitative measure, sending a million variable-setting
 packets to udpserver resulted in it consuming 0.4 seconds of user CPU
 time and 5.9 seconds of system CPU time, according to Linux, running
 on a 1.6 GHz Intel Pentium N3700.  Handling nonsense packets took
-roughly the same amount of time.
+roughly the same amount of time.  This works out to about 400 ns per
+packet, or 6.3 μs if we include the system time.  Roughly, the health
+report takes about 40 times as long as processing a heartbeat.
 
 Testing and prerequisites
 -------------------------
@@ -222,8 +287,10 @@ The only prerequisite for compiling Dumpulse itself is an ANSI C
 compiler† and Make.  To build the example UDP server, you probably
 need some kind of Unix.  udpclient.py and server.py require a
 relatively recent Python, either 2 or 3.  test.py, and the `test`
-target in the Makefile, additionally requires Hypothesis and py.test,
-but that doesn’t matter because I’m not doing anything in there yet.
+target in the Makefile, additionally requires Hypothesis and py.test.
+This is used to feed a few thousand random packets to the server and
+verify its behavior against a Python model, and it found an off-by-one
+bounds-checking bug when I introduced it.
 
 † well, I am actually using some C99 designated struct initializers in
 udpserver.c.
@@ -242,7 +309,8 @@ to send almost arbitrary data in the health report, limited only by
 timestamp control and the minor restrictions of Adler-32, which could
 be used to bounce data to nodes they cannot send messages to but can
 forge messages from, if any such exist.  However, they cannot crash
-Dumpulse or cause it to use a large amount of CPU time.
+Dumpulse or cause it to use a large amount of CPU time, unless it has
+bugs.
 
 However, it should be sufficiently tolerant of random or corrupted
 data that you can run it over a noisy broadcast network without a
@@ -270,6 +338,11 @@ valid range of 0–63; in the remaining cases, if it’s being written to
 a variable that’s being used by an active heartbeat, it will almost
 certainly be overwritten by a valid heartbeat before the remote
 monitoring process requests a health report.
+
+(The generative test with Hypothesis does generate random binary data
+packets and verify that they don’t change values or emit reply
+packets.  This test could happen upon a valid packet by chance, but so
+far it hasn’t.)
 
 While the health report request message could occur randomly, the
 consequence of sending an unnecessary health report is very mild.
