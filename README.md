@@ -56,6 +56,36 @@ C compiler and a recent Python 2 or 3 should work:
 
     ================================================================================== 1 passed in 0.03 seconds ===================================================================================
 
+Alternatively, to not install the test prerequisites outside of
+Docker:
+
+    $ make dockertest
+    docker build -t dumpulse .
+    Sending build context to Docker daemon 609.3 kB
+    Step 1 : FROM python:3.6
+     ---> 01fd71a97c19
+    Step 2 : RUN pip install pytest hypothesis
+     ---> Using cache
+     ---> ea9af75c12eb
+    Step 3 : ADD . /dumpulse
+     ---> 132cf83efdc1
+    Removing intermediate container 7989f2797eb5
+    Step 4 : WORKDIR /dumpulse
+     ---> Running in ebf0ca8f7659
+     ---> d9c5fcef4fb0
+    Removing intermediate container ebf0ca8f7659
+    Successfully built d9c5fcef4fb0
+    docker run dumpulse py.test test.py
+    ============================= test session starts ==============================
+    platform linux -- Python 3.6.3, pytest-3.2.3, py-1.4.34, pluggy-0.4.0
+    rootdir: /dumpulse, inifile:
+    plugins: hypothesis-3.32.2
+    collected 1 item
+
+    test.py .
+
+    =========================== 1 passed in 5.42 seconds ===========================
+
 What? Why? What is this good for?
 ---------------------------------
 
@@ -300,6 +330,9 @@ target in the Makefile, additionally requires Hypothesis and py.test.
 This is used to feed a few thousand random packets to the server and
 verify its behavior against a Python model, and it found an off-by-one
 bounds-checking bug when I introduced it.
+
+I’ve hacked together a Dockerfile that installs Hypothesis and py.test
+inside a Docker container to run the tests inside of.
 
 Reliability and security
 ------------------------

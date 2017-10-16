@@ -9,8 +9,10 @@ all: all-native dumpulse-i386.o dumpulse-attiny88.o dumpulse-atmega328.o
 
 test: test-prereqs
 	$(PYTEST) test.py
+dockertest: test-prereqs
+	docker build -t dumpulse .
+	docker run dumpulse py.test test.py
 test-prereqs: dumpulse.so
-
 
 dumpulse.o: dumpulse.c dumpulse.h
 	$(CC) -fPIC $(CFLAGS) -o $@ -c $<
