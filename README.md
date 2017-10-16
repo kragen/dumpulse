@@ -215,6 +215,16 @@ time and 5.9 seconds of system CPU time, according to Linux, running
 on a 1.6 GHz Intel Pentium N3700.  Handling nonsense packets took
 roughly the same amount of time.
 
+Testing and prerequisites
+-------------------------
+
+The only prerequisite for compiling Dumpulse itself is an ANSI C
+compiler† and Make.  To build the example UDP server, you probably
+need some kind of Unix.  udpclient.py r
+
+† well, I am actually using some C99 struct designated initializers in
+udpserver.c.
+
 Reliability and security
 ------------------------
 
