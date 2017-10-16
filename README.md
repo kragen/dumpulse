@@ -82,7 +82,7 @@ all zero bytes, and one function:
 It returns nonzero if it successfully processed the packet and zero if
 it did not, but generally speaking you don’t need to care.
 
-For embedding, it requires you to provide two functions:
+For embedding, it requires you to provide two handler functions:
 
     uint16_t dumpulse_get_timestamp(void);
     void dumpulse_send_packet(void *context, char *data, size_t len);
@@ -107,6 +107,17 @@ Dumpulse does not allocate memory and can only fail in the sense of
 not being able to process a packet because it is ill-formed.
 
 There is an example of hooking it up to UDP on Linux in `udpserver.c`.
+
+A more modern, but less efficient, dynamically-linkable interface is
+provided in dumpulse_so.c, mostly for testing.  This requires you to
+define a `dumpulse_so` struct with your function pointers and invoke
+the `dumpulse_process_packet_so` function with it.  At least with GCC,
+it uses thread-local storage so that you should be able to
+simultaneously invoke `dumpulse_process_packet_so` with different
+handlers on different threads.
+
+A `server.py` is provided which uses the dynamically-linkable
+interface via the standard, if awkward, Python `ctypes` module.
 
 Protocol
 --------
@@ -152,7 +163,7 @@ Performance and code weight
 ---------------------------
 
 Compiled for Linux with amd64 with GCC 5.4.0 with `-Os`, dumpulse is
-356 bytes of amd64 code and 76 instructions.
+356 bytes of amd64 code and 76 instructions.  (`-fPIC` adds two more bytes.)
 It should be similar in weight, though with more instructions, for
 most other processors; for example, compiled for the 386 with `-m32`,
 it’s 367 bytes and 92 instructions; compiled for the AVR ATTiny88 with
@@ -197,6 +208,12 @@ probably related to glibc’s implementation of time().  These numbers
 of course don’t include the time spent in the Linux kernel handling
 system calls, but they do include time in udpserver’s
 `dumpulse_send_packet` and `dumpulse_get_timestamp` functions.
+
+For a more quantitative measure, sending a million variable-setting
+packets to udpserver resulted in it consuming 0.4 seconds of user CPU
+time and 5.9 seconds of system CPU time, according to Linux, running
+on a 1.6 GHz Intel Pentium N3700.  Handling nonsense packets took
+roughly the same amount of time.
 
 Reliability and security
 ------------------------

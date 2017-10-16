@@ -3,3 +3,6 @@
 cachegrind.out.*
 /udpclient
 /udpserver
+__pycache__
+/dumpulse.so
+*.pyc

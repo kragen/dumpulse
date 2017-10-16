@@ -1,11 +1,19 @@
 AVRGCC=avr-gcc
 CFLAGS=-g -Os -Wall -std=c89
 
-all: dumpulse.o udpserver dumpulse-attiny88.o dumpulse-atmega328.o dumpulse-i386.o
+all: dumpulse.o udpserver dumpulse-attiny88.o dumpulse-atmega328.o \
+	dumpulse-i386.o dumpulse.so
 clean:
-	rm *.o udpserver
+	-rm *.o *.so udpserver
 
 dumpulse.o: dumpulse.c dumpulse.h
+	$(CC) -fPIC $(CFLAGS) -o $@ -c $<
+
+dumpulse_so.o: dumpulse_so.c dumpulse.h
+	$(CC) -fPIC $(CFLAGS) -o $@ -c $<
+
+dumpulse.so: dumpulse_so.o dumpulse.o
+	$(CC) -shared $^ -o $@
 
 udpserver: udpserver.o dumpulse.o
 
