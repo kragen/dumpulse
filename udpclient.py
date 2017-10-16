@@ -20,6 +20,15 @@ def _variable_settings(p):
         yield v, timestamp, sender, value
 
 
+def adler32(data):
+    """Can you believe zlib.adler32 is signed in Python2, unsigned in Python3‽
+
+    This fixes that.
+
+    """
+    return zlib.adler32(data) % 2**32
+
+
 def parse_health_report(health_report_bytes):
     """Return a variable settings list and the expected and received checksum.
 
@@ -30,8 +39,7 @@ def parse_health_report(health_report_bytes):
     """
     p = health_report_bytes
     checksum, = struct.unpack("<L", p[:4])
-    expected = zlib.adler32(p[4:])
-    return list(_variable_settings(p)), expected, checksum
+    return list(_variable_settings(p)), adler32(p[4:]), checksum
 
 
 def variable_settings(health_report_bytes):
@@ -66,7 +74,7 @@ def get_health_report(socket_object):
 def set_packet(variable, sender, value):
     "Construct a set-variable request packet and return it as bytes."
     payload = struct.pack("BBBB", 0xf1, variable, sender, value)
-    return struct.pack("<L", zlib.adler32(payload)) + payload
+    return struct.pack("<L", adler32(payload)) + payload
 
 
 def set_variable(socket_object, variable, sender, value):

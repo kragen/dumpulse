@@ -220,9 +220,12 @@ Testing and prerequisites
 
 The only prerequisite for compiling Dumpulse itself is an ANSI C
 compiler† and Make.  To build the example UDP server, you probably
-need some kind of Unix.  udpclient.py r
+need some kind of Unix.  udpclient.py and server.py require a
+relatively recent Python, either 2 or 3.  test.py, and the `test`
+target in the Makefile, additionally requires Hypothesis and py.test,
+but that doesn’t matter because I’m not doing anything in there yet.
 
-† well, I am actually using some C99 struct designated initializers in
+† well, I am actually using some C99 designated struct initializers in
 udpserver.c.
 
 Reliability and security
