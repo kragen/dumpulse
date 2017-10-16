@@ -9,3 +9,4 @@ __pycache__
 .cache
 .hypothesis
 /README.md.html
+/loopbench

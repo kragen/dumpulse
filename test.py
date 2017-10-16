@@ -5,18 +5,19 @@
 """
 import pytest
 from hypothesis import settings
-from hypothesis.stateful import (rule,
-                                 precondition,
-                                 RuleBasedStateMachine,
-                                 Bundle)
+from hypothesis.stateful import rule, RuleBasedStateMachine, Bundle
 from hypothesis.strategies import integers, binary
 
 import server
 import udpclient
 
 
+u16 = integers(min_value=0, max_value=65535)
+u8 = integers(min_value=0, max_value=255)
+
+
 class DumpulseTest(RuleBasedStateMachine):
-    Server = Bundle('server')
+    Bb = Bundle('bb')
 
     def get_timestamp(self):
         return self.timestamp
@@ -24,18 +25,13 @@ class DumpulseTest(RuleBasedStateMachine):
     def send_packet(self, packet):
         self.packets.append(packet)
 
-    @rule(target=Server)
+    @rule(target=Bb)
     def new_server(self):
         return (server.Dumpulse(get_timestamp=self.get_timestamp,
                                 send_packet=self.send_packet),
                 {})
 
-    @rule(target=Server,
-          instance=Server,
-          when=integers(min_value=0, max_value=65535),
-          variable=integers(min_value=0, max_value=255),
-          sender=integers(min_value=0, max_value=255),
-          value=integers(min_value=0, max_value=255))
+    @rule(target=Bb, instance=Bb, when=u16, variable=u8, sender=u8, value=u8)
     def valid_variable_set_packet(self, instance, when, variable, sender, value):
         server, state = instance
 
@@ -50,7 +46,7 @@ class DumpulseTest(RuleBasedStateMachine):
         return server, state
 
 
-    @rule(target=Server, instance=Server)
+    @rule(target=Bb, instance=Bb)
     def try_health_check(self, instance):
         server, state = instance
 
@@ -65,7 +61,7 @@ class DumpulseTest(RuleBasedStateMachine):
 
         return instance
 
-    @rule(target=Server, instance=Server, packet=binary(average_size=8))
+    @rule(target=Bb, instance=Bb, packet=binary(average_size=8))
     def send_invalid_packet(self, instance, packet):
         server, state = instance
 

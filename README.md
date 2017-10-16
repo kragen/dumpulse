@@ -1,5 +1,17 @@
-Dumpulse: an embeddable dumb heartbeat daemon in 256 bytes of RAM and ≈350 bytes of code
+Dumpulse: an embeddable dumb heartbeat daemon in 260 bytes of RAM and ≈350 bytes of code
 ========================================================================================
+
+Dumpulse aggregates network monitoring information in extremely
+constrained environments; it can handle up to a few million heartbeat
+messages per second, returning the latest heartbeat value from each
+sender upon request in a 260-byte health-report message.  It needs
+about 3% of the RAM found in a traditional Arduino like the
+Duemilanove, and it processes each heartbeat message in about 256
+instructions (about 30 nanoseconds on a 1.6GHz N3700).  It’s designed
+to work reliably even in unreliable environments.
+
+Quick start
+-----------
 
 Getting it running and trying it out; basically any Unix with a
 C compiler and a recent Python 2 or 3 should work:
@@ -312,13 +324,20 @@ of course don’t include the time spent in the Linux kernel handling
 system calls, but they do include time in udpserver’s
 `dumpulse_send_packet` and `dumpulse_get_timestamp` functions.
 
-For a more quantitative measure, sending a million variable-setting
+For a more empirical measure, sending a million variable-setting
 packets to udpserver resulted in it consuming 0.4 seconds of user CPU
 time and 5.9 seconds of system CPU time, according to Linux, running
 on a 1.6 GHz Intel Pentium N3700.  Handling nonsense packets took
 roughly the same amount of time.  This works out to about 400 ns per
 packet, or 6.3 μs if we include the system time.  Roughly, the health
 report takes about 40 times as long as processing a heartbeat.
+
+A more bare-bones test in a loop handles the same heartbeat packet 1
+billion times sequentially in 27–29 seconds on my laptop, so each
+packet requires some 27–29 nanoseconds; on a single core, my laptop
+could thus handle some 35 million heartbeat requests per second.  XXX
+this is with an optimized Adler and is thus perhaps not entirely
+comparable with the above results.
 
 Testing and prerequisites
 -------------------------
@@ -390,3 +409,6 @@ Because its fifth byte is “o” and not 0xf1, it will never be confused
 with a heartbeat message.
 
 <link rel="stylesheet" href="http://canonical.org/~kragen/style.css" />
+
+<script src="http://canonical.org/~kragen/sw/addtoc.js">
+</script>

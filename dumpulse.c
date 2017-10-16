@@ -51,9 +51,11 @@ static u32 adler32(u8 *p, size_t len)
   u32 a = 1, b = 0;
   while (len--) {
     a += *p++;
-    if (a >= MOD_ADLER) a -= MOD_ADLER;
     b += a;
-    if (b >= MOD_ADLER) b -= MOD_ADLER;
+    if (!(len & 0xf)) {
+      if (a >= MOD_ADLER) a -= MOD_ADLER;
+      if (b >= MOD_ADLER) b -= MOD_ADLER;
+    }
   }
   return b << 16 | a;
 }

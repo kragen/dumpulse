@@ -2,7 +2,7 @@ AVRGCC=avr-gcc
 CFLAGS=-g -Os -Wall -Wpedantic -std=c89
 PYTEST=py.test-3
 
-all-native: dumpulse.o udpserver dumpulse.so
+all-native: dumpulse.o udpserver dumpulse.so loopbench
 clean:
 	-rm *.o *.so udpserver
 all: all-native dumpulse-i386.o dumpulse-attiny88.o dumpulse-atmega328.o
@@ -24,6 +24,9 @@ dumpulse.so: dumpulse_so.o dumpulse.o
 	$(CC) -shared $^ -o $@
 
 udpserver: udpserver.o dumpulse.o
+loopbench: loopbench.o dumpulse.o
+bench: loopbench
+	time ./$<
 
 dumpulse-attiny88.o: dumpulse.c dumpulse.h
 	$(AVRGCC) -mmcu=attiny88 $(CFLAGS) -c $< -o $@
