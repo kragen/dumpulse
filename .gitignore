@@ -8,3 +8,4 @@ __pycache__
 *.pyc
 .cache
 .hypothesis
+/README.md.html

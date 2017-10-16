@@ -46,7 +46,7 @@ C compiler and a recent Python 2 or 3 should work:
     v63 = 0 at 0 from 0
     $ make test
     py.test-3 test.py
-    ===================================================================================== test session starts =====================================================================================
+    ============================= test session starts ==============================
     platform linux -- Python 3.5.2, pytest-2.8.7, py-1.4.31, pluggy-0.3.1
     rootdir: /home/user/Downloads/dumpulse, inifile: 
     plugins: hypothesis-3.0.1
@@ -54,7 +54,8 @@ C compiler and a recent Python 2 or 3 should work:
 
     test.py .
 
-    ================================================================================== 1 passed in 0.03 seconds ===================================================================================
+    =========================== 1 passed in 5.42 seconds ===========================
+
 
 Alternatively, to not install the test prerequisites outside of
 Docker:
@@ -387,3 +388,5 @@ While the health report request message could occur randomly, the
 consequence of sending an unnecessary health report is very mild.
 Because its fifth byte is “o” and not 0xf1, it will never be confused
 with a heartbeat message.
+
+<link rel="stylesheet" href="http://canonical.org/~kragen/style.css" />
