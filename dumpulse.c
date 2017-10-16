@@ -6,7 +6,9 @@
 
 #include "dumpulse.h"
 
-enum {heartbeat_magic = 0xf1, mod_adler = 65521};
+enum {heartbeat_magic = 0xf1};
+/* warning: ISO C restricts enumerator values to range of ‘int’ [-Wpedantic] */
+#define MOD_ADLER 65521L
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -49,9 +51,9 @@ static u32 adler32(u8 *p, size_t len)
   u32 a = 1, b = 0;
   while (len--) {
     a += *p++;
-    if (a >= mod_adler) a -= mod_adler;
+    if (a >= MOD_ADLER) a -= MOD_ADLER;
     b += a;
-    if (b >= mod_adler) b -= mod_adler;
+    if (b >= MOD_ADLER) b -= MOD_ADLER;
   }
   return b << 16 | a;
 }

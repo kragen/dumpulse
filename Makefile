@@ -1,5 +1,5 @@
 AVRGCC=avr-gcc
-CFLAGS=-g -Os -Wall -std=c89
+CFLAGS=-g -Os -Wall -Wpedantic -std=c89
 PYTEST=py.test-3
 
 all-native: dumpulse.o udpserver dumpulse.so

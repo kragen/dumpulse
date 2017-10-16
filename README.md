@@ -130,6 +130,13 @@ configuration data.
 Calling interface
 -----------------
 
+There are two calling interfaces: the embedding interface provided by
+`dumpulse.o`, intended for actual use, and the dynamic-linking
+interface provided by `dumpulse.so`, which wraps it and is used for
+testing.
+
+### Embedding interface ###
+
 As documented in `dumpulse.h`, `dumpulse.o`
 exposes one data type, `dumpulse`, which can be allocated
 where you like and needs no finalization but should be initialized to
@@ -166,8 +173,10 @@ not being able to process a packet because it is ill-formed.
 
 There is an example of hooking it up to UDP on Linux in `udpserver.c`.
 
+### Dynamic-linking interface ###
+
 A more modern, but less efficient, dynamically-linkable interface is
-provided in dumpulse_so.c, mostly for testing.  This requires you to
+provided in `dumpulse_so.c`, mostly for testing.  This requires you to
 define a `dumpulse_so` struct with your function pointers and invoke
 the `dumpulse_process_packet_so` function with it.  At least with GCC,
 it uses thread-local storage so that you should be able to
@@ -176,7 +185,7 @@ handlers on different threads.
 
 A `server.py` is provided which uses the dynamically-linkable
 interface via the standard, if awkward, Python `ctypes` module.  This
-is used for property-based generative testing.
+is used for property-based generative testing in `test.py`.
 
 Protocol
 --------
@@ -208,8 +217,8 @@ ID, value).  That is, again with four bytes per row:
     |timestamp|from| val| heartbeat variable 0
     +----+----+----+----+
     |timestamp|from| val| heartbeat variable 1
-    .    .    .    .    .
-    :    :    :    :    :
+    .         .    .    .
+    :         :    :    :
     |timestamp|from| val| heartbeat variable 63
     +----+----+----+----+
 
@@ -284,16 +293,13 @@ Testing and prerequisites
 -------------------------
 
 The only prerequisite for compiling Dumpulse itself is an ANSI C
-compiler† and Make.  To build the example UDP server, you probably
+compiler and Make.  To build the example UDP server, you probably
 need some kind of Unix.  udpclient.py and server.py require a
 relatively recent Python, either 2 or 3.  test.py, and the `test`
 target in the Makefile, additionally requires Hypothesis and py.test.
 This is used to feed a few thousand random packets to the server and
 verify its behavior against a Python model, and it found an off-by-one
 bounds-checking bug when I introduced it.
-
-† well, I am actually using some C99 designated struct initializers in
-udpserver.c.
 
 Reliability and security
 ------------------------

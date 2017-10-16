@@ -38,17 +38,14 @@ void dumpulse_send_packet(void *context, char *data, size_t len)
 }
 
 dumpulse dump;
+struct sockaddr_in me;
 
 int main(int argc, char **argv)
 {
   int yes = 1;
   ctx c;
   uint8_t buf[8];
-  struct sockaddr_in me = {
-    .sin_family = AF_INET,
-    .sin_addr = {0},
-    .sin_zero = {0},
-  };
+  me.sin_family = AF_INET;
 
   if (argc != 2) {
     fprintf(stderr,

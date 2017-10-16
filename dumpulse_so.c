@@ -17,8 +17,9 @@ static thread_local dumpulse_so *current;
 
 uint8_t dumpulse_process_packet_so(dumpulse_so *p, char *data)
 {
+  uint8_t rv;
   current = p;
-  uint8_t rv = dumpulse_process_packet(p->p, data, p->context);
+  rv = dumpulse_process_packet(p->p, data, p->context);
   current = 0;
   return rv;
 }
