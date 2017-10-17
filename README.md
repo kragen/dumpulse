@@ -329,5 +329,5 @@ recognize roughly one in 2³² random 8-byte packets.
 </script>
 
 <style>
-img {float: right}
+img {float: right; margin-right: -40em; margin-left: 1em}
 </style>

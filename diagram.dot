@@ -1,6 +1,8 @@
 digraph x {
         rankdir=LR
         node [shape=box];
+        Dumpulse [shape=record, label="{Dumpulse | {last brakes | last ECU status | last radio status | last latitude | last longitude | last alarm status}}"];
+        
         subgraph cluster_car {
                 label="Car";
                 { Brakes ECU Radio GPS Alarm } -> Dumpulse [label="High-bandwidth\ncontroller-area network"];
