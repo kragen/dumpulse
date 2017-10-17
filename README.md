@@ -1,5 +1,6 @@
 Dumpulse: an embeddable dumb heartbeat daemon in 260 bytes of RAM and ≈350 bytes of code
 ========================================================================================
+![](diagram.png)
 
 Dumpulse aggregates network monitoring information in extremely
 constrained environments; it can handle up to a few million heartbeat
@@ -326,3 +327,7 @@ recognize roughly one in 2³² random 8-byte packets.
 
 <script src="http://canonical.org/~kragen/sw/addtoc.js">
 </script>
+
+<style>
+img {float: right}
+</style>

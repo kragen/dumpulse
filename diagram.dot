@@ -1,0 +1,6 @@
+digraph x {
+        rankdir=LR
+        node [shape=box];
+        { Brakes ECU Radio } -> Dumpulse [label="High-bandwidth\ncontroller-area network"];
+        Dumpulse -> NMS [label="intermittent 8kbps\nMobitex link"];
+}
