@@ -1,3 +1,8 @@
+Statistical aspects of Dumpulse: Performance and reliability
+============================================================
+
+These are almost just raw notes.
+
 Performance
 -----------
 
@@ -102,3 +107,9 @@ While the health report request message could occur randomly, the
 consequence of sending an unnecessary health report is very mild.
 Because its fifth byte is “o” and not 0xf1, it will never be confused
 with a heartbeat message.
+
+
+<link rel="stylesheet" href="http://canonical.org/~kragen/style.css" />
+
+<script src="http://canonical.org/~kragen/sw/addtoc.js">
+</script>

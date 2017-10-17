@@ -7,8 +7,10 @@ messages per second, returning the latest heartbeat value from each
 sender upon request in a 260-byte health-report message.  It needs
 about 3% of the RAM found in a traditional Arduino like the
 Duemilanove, and it processes each heartbeat message in about 256
-instructions (about 30 nanoseconds on a 1.6GHz N3700).  It’s designed
+instruction executions (about 30 nanoseconds on a 1.6GHz N3700).  It’s designed
 to work reliably even in unreliable environments.
+
+Dumpulse is 200–400 bytes of code and under 100 machine instructions.
 
 Quick start
 -----------
