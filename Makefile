@@ -24,6 +24,7 @@ dumpulse.so: dumpulse_so.o dumpulse.o
 	$(CC) -shared $^ -o $@
 
 udpserver: udpserver.o dumpulse.o
+loopbench.o: loopbench.c dumpulse.h
 loopbench: loopbench.o dumpulse.o
 bench: loopbench
 	time ./$<
