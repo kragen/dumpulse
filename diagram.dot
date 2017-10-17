@@ -1,6 +1,9 @@
 digraph x {
         rankdir=LR
         node [shape=box];
-        { Brakes ECU Radio } -> Dumpulse [label="High-bandwidth\ncontroller-area network"];
+        subgraph cluster_car {
+                label="Car";
+                { Brakes ECU Radio GPS Alarm } -> Dumpulse [label="High-bandwidth\ncontroller-area network"];
+        }
         Dumpulse -> NMS [label="intermittent 8kbps\nMobitex link"];
 }
