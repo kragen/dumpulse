@@ -1,6 +1,7 @@
 digraph x {
         rankdir=LR
-        node [shape=box];
+        graph [bgcolor="#ffffff00"]
+        node [shape=box]
         Dumpulse [shape=record, label="{Dumpulse | {last brakes | last ECU status | last radio status | last latitude | last longitude | last alarm status}}"];
         
         subgraph cluster_car {

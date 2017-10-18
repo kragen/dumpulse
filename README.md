@@ -12,7 +12,7 @@ Duemilanove, and it processes each heartbeat message in about 256
 instruction executions (about 30 nanoseconds on a 1.6GHz N3700).  It’s designed
 to work reliably even in unreliable environments.
 
-Dumpulse is 200–400 bytes of code and under 100 machine instructions.
+Dumpulse is 200–400 bytes of code and 75–200 machine instructions.
 
 Quick start
 -----------
