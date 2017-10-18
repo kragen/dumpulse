@@ -1,5 +1,6 @@
 Dumpulse: an embeddable dumb heartbeat daemon in 260 bytes of RAM and ≈350 bytes of code
 ========================================================================================
+
 ![](diagram.png)
 
 Dumpulse aggregates network monitoring information in extremely
@@ -236,7 +237,7 @@ is used for property-based generative testing in `test.py`.
 Protocol
 --------
 
-The heartbeat message consists of 8 bytes: a four-byte little-endian
+The heartbeat message consists of 8 bytes: a four-byte big-endian
 Adler-32 checksum of the other four bytes, a single byte with the
 constant value 241, a single-byte variable ID identifying the variable
 to update (from 0 to 63), a byte indicating the ostensible identity of
@@ -253,7 +254,7 @@ row:
 
 The health report request message is the fixed 8 ASCII bytes
 “AreyouOK”, and will be responded to with a 260-byte response
-consisting of a four-byte little-endian Adler-32 of the rest of the
+consisting of a four-byte big-endian Adler-32 of the rest of the
 message, followed by 64 four-byte triples (16-bit timestamp, sender
 ID, value).  That is, again with four bytes per row:
 

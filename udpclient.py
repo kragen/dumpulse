@@ -16,7 +16,7 @@ def _variable_settings(p):
     "Yields tuples like those of variable_settings, without checking checksums."
 
     for v in range(len(p)//4-1):
-        timestamp, sender, value = struct.unpack("<HBB", p[4*(v+1):][:4])
+        timestamp, sender, value = struct.unpack(">HBB", p[4*(v+1):][:4])
         yield v, timestamp, sender, value
 
 
@@ -38,7 +38,7 @@ def parse_health_report(health_report_bytes):
 
     """
     p = health_report_bytes
-    checksum, = struct.unpack("<L", p[:4])
+    checksum, = struct.unpack(">L", p[:4])
     return list(_variable_settings(p)), adler32(p[4:]), checksum
 
 
@@ -74,7 +74,7 @@ def get_health_report(socket_object):
 def set_packet(variable, sender, value):
     "Construct a set-variable request packet and return it as bytes."
     payload = struct.pack("BBBB", 0xf1, variable, sender, value)
-    return struct.pack("<L", adler32(payload)) + payload
+    return struct.pack(">L", adler32(payload)) + payload
 
 
 def set_variable(socket_object, variable, sender, value):

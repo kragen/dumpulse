@@ -6,6 +6,13 @@ These are almost just raw notes.
 Performance
 -----------
 
+I did some tests on a 1.6 GHz Intel Pentium N3700.
+
+### Initial results ###
+
+(This section contains results from when Dumpulse was little-endian.
+Everything should be very slightly worse now.)
+
 Roughly, Dumpulse takes about 200 ns to handle a heartbeat message and
 8 μs to send a health report, varying of course based on the processor
 you run it on.
@@ -59,8 +66,8 @@ system calls, but they do include time in udpserver’s
 
 For a more empirical measure, sending a million variable-setting
 packets to udpserver resulted in it consuming 0.4 seconds of user CPU
-time and 5.9 seconds of system CPU time, according to Linux, running
-on a 1.6 GHz Intel Pentium N3700.  Handling nonsense packets took
+time and 5.9 seconds of system CPU time, according to Linux.
+Handling nonsense packets took
 roughly the same amount of time.  This works out to about 400 ns per
 packet, or 6.3 μs if we include the system time.  Roughly, the health
 report takes about 40 times as long as processing a heartbeat.
@@ -72,6 +79,31 @@ packet 1 billion times sequentially in 27–29 seconds on my laptop, so
 each packet requires some 27–29 nanoseconds; on a single core, my
 laptop could thus handle some 35 million heartbeat requests per
 second.
+
+### Further results ###
+
+I switched to big-endian packet formats and optimized the Adler-32
+calculation a bit.
+
+loopbench.c still takes ≈28 seconds.  Compiling loopbench.c and
+dumpulse.c with -O5 -fomit-frame-pointer instead, loopbench handles 1
+billion packets in 16 seconds, thus 16 ns per packet.  Now the sizes
+of dumpulse compiled for different architectures are as follows, which
+are a few bytes larger than previously:
+
+       text	   data	    bss	    dec	    hex	filename
+        335	      0	      0	    335	    14f	dumpulse-atmega328.o
+        345	      0	      0	    345	    159	dumpulse-attiny88.o
+        385	      0	      0	    385	    181	dumpulse-i386.o
+        372	      0	      0	    372	    174	dumpulse.o
+
+`udpserver` used 160,089 instructions with 0 `set_variable` packets,
+161,158 with a single packet, 173,236 with 100, and 283,036 with 1000.
+One health report is 164,406, one health report and 1000 setvars is
+287,353 (though there is some experimental error).  This suggests that
+the cost per setvar has gone from 128 instructions down to 122, and
+the cost for a health report has gone down from 5227 to either 4317 or
+4517, but I wrote down one of the numbers wrong.
 
 Reliability
 -----------

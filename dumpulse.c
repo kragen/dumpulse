@@ -1,4 +1,4 @@
-/* Implementation of Dumpulse, a dumb heartbeat daemon in 256 bytes of
+/* Implementation of Dumpulse, a dumb heartbeat daemon in 260 bytes of
    RAM and ≈350 bytes of code
  */
 #include <stdint.h>
@@ -14,24 +14,25 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-static void store_little_endian_u16(u8 *p, u16 v)
+static void store_big_endian_u16(u8 *p, u16 v)
 {
-  p[0] = 0xff & v;
-  p[1] = 0xff & (v >> 8);
+  p[0] = 0xff & (v >> 8);
+  p[1] = 0xff & v;
 }
 
-static void store_little_endian_u32(u8 *p, u32 v)
+static void store_big_endian_u32(u8 *p, u32 v)
 {
-  store_little_endian_u16(p, v);
-  store_little_endian_u16(p+2, v >> 16);
+  store_big_endian_u16(p, v >> 16);
+  store_big_endian_u16(p+2, v);
 }
 
-static u32 fetch_little_endian_u32(u8 *p)
+static u32 fetch_big_endian_u32(u8 *p)
 {
-  return (u32)p[0]
-    | (u32)p[1] << 8
-    | (u32)p[2] << 16
-    | (u32)p[3] << 24
+  return 0
+    | (u32)p[0] << 24
+    | (u32)p[1] << 16
+    | (u32)p[2] << 8
+    | (u32)p[3]
     ;
 }
 
@@ -40,7 +41,7 @@ static u8 update_entry(dumpulse *p, u8 entry, u8 from, u8 value)
   u8 *item;
   if (entry >= dumpulse_n_variables) return 0;
   item = p->table + dumpulse_checksum_len + dumpulse_entry_size * entry;
-  store_little_endian_u16(item, dumpulse_get_timestamp());
+  store_big_endian_u16(item, dumpulse_get_timestamp());
   item[2] = from;
   item[3] = value;
   return 1;
@@ -62,7 +63,7 @@ static u32 adler32(u8 *p, size_t len)
 
 static u8 process_heartbeat(dumpulse *p, u8 *data)
 {
-  u32 expected = fetch_little_endian_u32(data);
+  u32 expected = fetch_big_endian_u32(data);
   u8 *payload = data + dumpulse_checksum_len;
   u32 checksum = adler32(payload,
                          dumpulse_timestamp_len
@@ -74,7 +75,7 @@ static u8 process_heartbeat(dumpulse *p, u8 *data)
 
 static void send_response(dumpulse *p, void *context)
 {
-  store_little_endian_u32(p->table, adler32(
+  store_big_endian_u32(p->table, adler32(
     (u8*)p->table + dumpulse_checksum_len,
     sizeof(p->table) - dumpulse_checksum_len));
   dumpulse_send_packet(context, (char*)p->table, sizeof(p->table));

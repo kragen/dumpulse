@@ -28,7 +28,7 @@ int main(int argc, char **argv)
    * amount of time, because Dumpulse itself does not do any caching,
    * and GCC is not doing whole-program or link-time optimization.
    */
-  char *req = "\xc5\x01^\x05\xf1<KL";
+  char *req = "\x05k\x01\xce\xf1>KS";
   for (i = 0; i < 1000*1000*1000; i++) {
     if (!dumpulse_process_packet(&d, req, 0)) abort();      
   }
