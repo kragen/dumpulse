@@ -237,37 +237,22 @@ is used for property-based generative testing in `test.py`.
 Protocol
 --------
 
+![(diagram)](heartbeat.png)
+
 The heartbeat message consists of 8 bytes: a four-byte big-endian
 Adler-32 checksum of the other four bytes, a single byte with the
 constant value 241, a single-byte variable ID identifying the variable
 to update (from 0 to 63), a byte indicating the ostensible identity of
 the packet sender, and a final byte containing the value of the
-variable, in that order with no padding.  That is, with four bytes per
-row:
+variable, in that order with no padding.
 
-
-    +----+----+----+----+
-    |     Adler-32      |
-    +----+----+----+----+
-    |0xf1| var|from| val|
-    +----+----+----+----+
+![(diagram)](health-report.png)
 
 The health report request message is the fixed 8 ASCII bytes
 “AreyouOK”, and will be responded to with a 260-byte response
 consisting of a four-byte big-endian Adler-32 of the rest of the
 message, followed by 64 four-byte triples (16-bit timestamp, sender
-ID, value).  That is, again with four bytes per row:
-
-    +----+----+----+----+
-    |     Adler-32      |
-    +----+----+----+----+
-    |timestamp|from| val| heartbeat variable 0
-    +----+----+----+----+
-    |timestamp|from| val| heartbeat variable 1
-    .         .    .    .
-    :         :    :    :
-    |timestamp|from| val| heartbeat variable 63
-    +----+----+----+----+
+ID, value).
 
 The 16-bit timestamp has a resolution determined by the application;
 there’s a tradeoff between wraparound time and precision.  Taking the
@@ -324,11 +309,20 @@ separate addressing layer underneath (something such as UDP which
 ensures it only receives data intended for it).  It will spuriously
 recognize roughly one in 2³² random 8-byte packets.
 
-<link rel="stylesheet" href="http://canonical.org/~kragen/style.css" />
+Provenance
+----------
+
+The ideas came out of discussions with Lucio Torre, Alejandro Cura,
+Nicolás Demarchi, Ezequiel Alfíe, and others,
+but Kragen Javier Sitaker wrote Dumpulse, so the
+deficiencies of the design and implementation are all his.
+
+Dumpulse is copyright Ⓒ 2017 Satellogic.
 
 <script src="http://canonical.org/~kragen/sw/addtoc.js">
 </script>
 
 <style>
-img {float: right; margin-right: -40em; margin-left: 1em}
+img {float: right; clear: right; margin-left: 1em}
+h1, h2, h3, h4, h5, h6 { clear: right }
 </style>

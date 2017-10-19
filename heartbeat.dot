@@ -1,0 +1,5 @@
+digraph h {
+        graph [bgcolor="#ffffff00"]
+        label="Heartbeat message format\nfour bytes per line"
+        heartbeat_message [shape=record,label="{Adler-32|{0xf1|var|from|val}}"];
+}

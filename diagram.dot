@@ -2,11 +2,16 @@ digraph x {
         rankdir=LR
         graph [bgcolor="#ffffff00"]
         node [shape=box]
-        Dumpulse [shape=record, label="{Dumpulse | {last brakes | last ECU status | last radio status | last latitude | last longitude | last alarm status}}"];
+        Dumpulse [shape=record, label="{Dumpulse | {last brake status | last ECU status | last radio status | last latitude high byte | last latitude middle byte | last latitude low byte | last longitude high byte | last longitude middle byte | last longitude low byte | last alarm status}}"];
         
         subgraph cluster_car {
-                label="Car";
-                { Brakes ECU Radio GPS Alarm } -> Dumpulse [label="High-bandwidth\ncontroller-area network"];
+                label="Car\nHigh-bandwidth controller-area network";
+                Brakes -> Dumpulse [label="10 Hz\n8 bytes\nbrake status"];
+                ECU -> Dumpulse [label="10 Hz\n8 bytes\nECU status"];
+                Radio -> Dumpulse [label="100 mHz\n8 bytes\nradio status"];
+                GPS -> Dumpulse [label="1 Hz\n48 bytes\nlatitude and longitude"];
+                Alarm -> Dumpulse [label="100 mHz\n8 bytes\nalarm status"];
         }
-        Dumpulse -> NMS [label="intermittent 8kbps\nMobitex link"];
+        NMS -> Dumpulse [label="1 mHz\n8 byte status request"];
+        Dumpulse -> NMS [label="260 bytes over\nintermittent 8kbps\nMobitex link"];
 }

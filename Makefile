@@ -4,8 +4,8 @@ PYTEST=py.test-3
 
 all-native: dumpulse.o udpserver dumpulse.so loopbench
 clean:
-	-rm *.o *.so udpserver
-all: all-native dumpulse-i386.o dumpulse-attiny88.o dumpulse-atmega328.o
+	-rm *.o *.so udpserver diagram.png heartbeat.png health-report.png
+all: all-native dumpulse-i386.o dumpulse-attiny88.o dumpulse-atmega328.o diagram.png heartbeat.png health-report.png
 
 test: test-prereqs
 	$(PYTEST) test.py
@@ -37,3 +37,6 @@ dumpulse-atmega328.o: dumpulse.c dumpulse.h
 
 dumpulse-i386.o: dumpulse.c dumpulse.h
 	$(CC) -m32 $(CFLAGS) -c $< -o $@
+
+%.png: %.dot
+	dot -Tpng < $< > $@

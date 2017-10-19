@@ -1,0 +1,12 @@
+digraph h {
+        rankdir=LR
+        graph [bgcolor="#ffffff00"]
+        label="Health report message format\nfour bytes per line"
+        heartbeat_message [shape=record,label="Adler-32|{<0>timestamp|from|val}|{<1>timestamp|from|val}|{<2>timestamp\n⋮\ntimestamp|from\n⋮\nfrom|val\n⋮\nval}"];
+        0 -> heartbeat_message:0;
+        1 -> heartbeat_message:1;
+        2 -> heartbeat_message:2;
+        0 [label="heartbeat variable 0"];
+        1 [label="heartbeat variable 1"];
+        2 [label="heartbeat variables 2–63"];
+}
