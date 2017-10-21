@@ -34,7 +34,7 @@ C compiler and a recent Python 2 or 3 should work:
     [1] 10560
     $ Waiting for UDPv4 packets on port 9060.
 
-    $ python udpclient.py localhost 9060
+    $ python client.py localhost 9060
     Health report of 260 bytes:
     checksum 01000001 checks OK
     v0 = 0 at 0 from 0
@@ -42,8 +42,8 @@ C compiler and a recent Python 2 or 3 should work:
     v2 = 0 at 0 from 0
     …
     v63 = 0 at 0 from 0
-    $ python udpclient.py localhost 9060 -v 45  # set a value
-    $ python udpclient.py localhost 9060
+    $ python client.py localhost 9060 -v 45  # set a value
+    $ python client.py localhost 9060
     Health report of 260 bytes:
     checksum 7fb80181 checks OK
     v0 = 45 at 14543 from 76
@@ -51,8 +51,8 @@ C compiler and a recent Python 2 or 3 should work:
     v2 = 0 at 0 from 0
     …
     v63 = 0 at 0 from 0
-    $ python udpclient.py localhost 9060 -v 46 -n 1
-    $ python udpclient.py localhost 9060
+    $ python client.py localhost 9060 -v 46 -n 1
+    $ python client.py localhost 9060
     Health report of 260 bytes:
     checksum 005c0309 checks OK
     v0 = 45 at 14543 from 76
@@ -272,7 +272,7 @@ property-based generative testing framework.
 
 The only prerequisite for compiling Dumpulse itself is an ANSI C
 compiler and Make.  To build the example UDP server, you probably
-need some kind of Unix.  udpclient.py and server.py require a
+need some kind of Unix.  client.py and server.py require a
 relatively recent Python, either 2 or 3.
 
 test.py, and the `test` target in the Makefile, additionally requires

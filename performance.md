@@ -34,7 +34,7 @@ must provide.
 
 Running the provided `udpserver` on Linux compiled as above under
 valgrind and hitting it with different numbers of requests from the
-provided `udpclient`, we get the following results:
+provided `client.py`, we get the following results:
 
     | 0 request packets       | 159931 instructions executed |
     | 1 setvar                |                       161006 |

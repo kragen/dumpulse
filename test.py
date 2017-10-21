@@ -9,7 +9,7 @@ from hypothesis.stateful import rule, RuleBasedStateMachine, Bundle
 from hypothesis.strategies import integers, binary
 
 import server
-import udpclient
+import client
 
 
 u16 = integers(min_value=0, max_value=65535)
@@ -36,7 +36,7 @@ class DumpulseTest(RuleBasedStateMachine):
         server, state = instance
 
         self.timestamp = when
-        packet = udpclient.set_packet(variable, sender, value)
+        packet = client.set_packet(variable, sender, value)
         assert (1 if variable < 64 else 0) == server.process_packet(packet)
         del self.timestamp
 
@@ -51,11 +51,11 @@ class DumpulseTest(RuleBasedStateMachine):
         server, state = instance
 
         self.packets = []
-        assert 1 == server.process_packet(udpclient.query_packet)
+        assert 1 == server.process_packet(client.query_packet)
         health_check, = self.packets
         del self.packets
 
-        settings = udpclient.variable_settings(health_check)
+        settings = client.variable_settings(health_check)
         assert [(i, when, sender, value) for i, (when, sender, value) in
                 ((i, state.get(i, (0,0,0))) for i in range(64))] == settings
 

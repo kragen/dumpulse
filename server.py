@@ -18,7 +18,7 @@ from ctypes import (
 )
 import os
 
-import udpclient
+import client
 
 
 so = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__) or '.',
@@ -85,10 +85,10 @@ if __name__ == '__main__':
                  send_packet=lambda data: print(repr(data)))
 
     # Query before any sets
-    print(x.process_packet(udpclient.query_packet))
+    print(x.process_packet(client.query_packet))
     # Valid set
-    print(x.process_packet(udpclient.set_packet(3, 4, 5)))
+    print(x.process_packet(client.set_packet(3, 4, 5)))
     # Invalid data
     print(x.process_packet(b"12345678"))
     # Query showing the set
-    print(x.process_packet(udpclient.query_packet))
+    print(x.process_packet(client.query_packet))
