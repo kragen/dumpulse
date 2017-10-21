@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*- (for Python2)
 "UDP client for Dumpulse, primarily for debuggging."
+from __future__ import print_function
 
 import argparse
 import socket
@@ -55,9 +56,39 @@ def variable_settings(health_report_bytes):
 
 
 def get_health_report(socket_object):
-    "Request and display a health report from a Dumpulse server."
-    socket_object.send(query_packet)
-    p = socket_object.recv(2048)
+    "Request a health report from a Dumpulse server."
+    # Round-trip latencies on internet across the US are currently a
+    # bit under 50ms, but sometimes bufferbloat can push that quite a
+    # bit higher.  This starts at 250ms and does 4 more retries before
+    # getting to one second, and gives up after 9 more retries in a
+    # little under a minute, which is a bit more aggressive than
+    # traditional TCP/IP settings but still has the exponential
+    # backoff needed to avoid some pathological emergent behaviors.
+    retry_interval, retry_delay_factor, max_retry_interval = 0.25, 1.4142, 16
+
+    timeout = socket_object.gettimeout()
+    try:
+        while True:
+            socket_object.settimeout(retry_interval)
+            try:
+                socket_object.send(query_packet)
+                p = socket_object.recv(2048)
+            except socket.timeout:
+                retry_interval *= retry_delay_factor
+                if retry_interval > max_retry_interval:
+                    return None         # timeout
+            else:
+                return p
+    finally:
+        socket_object.settimeout(timeout)
+
+
+def show_health_report(socket_object):
+    p = get_health_report(socket_object)
+    if p is None:
+        print("Timeout polling", socket_object.getpeername())
+        return
+
     print("Health report of {} bytes:".format(len(p)))
 
     settings, expected, checksum = parse_health_report(p)
@@ -98,7 +129,7 @@ def main():
     s.connect((args.host, args.port))
 
     if args.value is None:
-        get_health_report(s)
+        show_health_report(s)
     else:
         set_variable(s, args.variable, args.sender, args.value)
 
